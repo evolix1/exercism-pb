@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-pub struct School(HashMap<u32, Vec<String>>);
+pub struct School(BTreeMap<u32, Vec<String>>);
 
 impl School {
     pub fn new() -> School {
-        School(HashMap::new())
+        School(BTreeMap::new())
     }
 
     pub fn add(&mut self, grade: u32, student: &str) {
@@ -17,9 +17,7 @@ impl School {
     }
 
     pub fn grades(&self) -> Vec<u32> {
-        let mut k = self.0.keys().map(|&x| x).collect::<Vec<u32>>();
-        k.sort();
-        k
+        self.0.keys().cloned().collect::<Vec<u32>>()
     }
 
     pub fn grade(&self, grade: u32) -> Option<Vec<String>> {
