@@ -1,0 +1,30 @@
+/// Convert a list of numbers to a stream of bytes encoded with variable length encoding.
+pub fn to_bytes(values: &[u32]) -> Vec<u8> {
+    unimplemented!()
+}
+
+pub fn from_bytes(bytes: &[u8]) -> Result<Vec<u32>, &'static str> {
+    if bytes[bytes.len() - 1] & 128 != 0 {
+        return Err("invalid bytes");
+    }
+
+    bytes.iter()
+        .map(|x| (x & 128 == 0, x & 127))
+        .scan(0, |count, (ended, x)| {
+            *count += 1;
+            if *count > 4 || (*count == 4 && !ended) { *count = 0; Some(None) }
+            else { if ended { *count = 0; } Some(Some((ended, x))) }
+        })
+        .collect::<Option<Vec<(bool, u8)>>>()
+        .map(|cleared| cleared.iter()
+             .scan(0u32, |value, &(ended, x)| {
+                 *value = (x as u32) | (*value).rotate_left(7);
+                 let res = Some((ended, *value));
+                 if ended { *value = 0; }
+                 res
+             })
+             .filter_map(|(ended, x)| if ended { Some(x) } else { None })
+             .collect::<Vec<u32>>()
+         )
+        .ok_or("invalid bytes")
+}
